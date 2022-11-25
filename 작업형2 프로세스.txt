@@ -1,126 +1,22 @@
-### 데이터 불러오기
-### EDA
-    head()		불필요 변수('id'), 범주화할 변수('age'), 인코딩할 변수	
-    info()		인코딩할 변수명 기록하기
-    describe()	이상치(?)
-    isnull().sum()	결측치 확인
-    value_counts()	혹시나, 'Unknown'같이 결측치 아닌 결측치 확인
+1. 데이터 불러오기
+	import pandas as pd
+	pd.read_csv()
+2. EDA
+	head()
+	info()
+	describe()
+	isnull().sum()
+	X['범주형변수'].value_counts()
 
-### 데이터 전처리
-    (1) 불필요 변수 제거	drop, pop
-    (2) 범주화		pd.cut(df.['변수명'], bins = ).astype('object')
-    (3) 결측값 처리		대치 or 너무 많을 경우 변수 제거
+3. 데이터 전처리
+  1) 불필요 변수 제거
+  2) 결측치 처리
+  3) 범주형 변수 전처리
+  4) 수치형 변수 전처리
+  5) 데이터 분할
+  6) 인코딩
+  7) 스케일링
+  8) 데이터셋 준비
 
-### 데이터 분할
-from sklearn.model_selection import train_test_split
-X_train, X_val, y_train, y_val = train_test_split(X, y, random_state = 1234, test_size = 0.2)
-
-### 인코딩
-  (1) 독립변수
-from sklearn.preprocessing import OneHotEncoder
-
-X_train_columns = X_train.select_dtypes('object').copy()
-X_val_columns = X_val.select_dtypes('object').copy()
-test_columns = test.select_dtypes('object').copy()
-
-enc = OneHotEncoder(sparse = False)
-
-X_train_oh = enc.fit_transform(X_train_columns)
-X_val_oh = enc.fit_transform(X_val_columns)
-test_oh = enc.fit_transform(test_columns)
-
-
-  (2) 목표변수
-from sklearn.preprocessing import LabelEncoder
-le = LabelEncoder()
-
-cols = ['gender','ever_married','work_type','Residence_type','smoking_status']
-for col in cols :
-    X[col] = le.fit_transform(X[col])
-    test[col] = le.fit_transform(test[col])
-# ----------------------------------------------------> 범주형 자료 준비완료
-
-
-### 스케일링 (표준화)
-from sklearn.preprocessing import StandardScaler
-
-# select_dtypes(exclude = 'object') 
-# 범주형 자료를 제외하고 모두 선택
-X_train_conti = X_train.select_dtypes(exclude = 'object').copy()
-X_val_conti = X_val.select_dtypes(exclude = 'object').copy()
-test_conti = test.select_dtypes(exclude = 'object').copy()
-
-scale = StandardScaler()
-
-X_train_scale = scale.fit_transform(X_train_conti)
-X_val_scale = scale.fit_transform(X_val_conti)
-test_scale = scale.fit_transform(test_conti)
-# ----------------------------------------------------> 수치형 자료 준비완료
-
-
-### 데이터셋 준비
-import numpy as np
-
-X_train = np.concatenate([X_train_oh, X_train_scale], axis = 1)
-X_val = np.concatenate([X_val_oh, X_val_scale], axis = 1)
-test = np.concatenate([test_oh, test_scale], axis = 1)
-
-# 1차원으로 펼치기
-y_train = y_train.values.flatten()
-y_val = y_val.values.flatten()
-
-
-### 모델 학습
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-
-# 1) randomforest
-rf = RandomForestClassifier(n_estimators = 500,
-                            max_depth = 3,
-                            min_samples_leaf = 10,
-                            max_features = 2,
-                            random_state = 2022)
-model_rf = rf.fit(X_train, y_train)
-
-# 2) xgboost
-xgb = XGBClassifier(max_depth = 8,
-                    n_estimators = 500,
-                    nthread = 5,
-                    min_child_weight = 20,
-                    gamma = 0.5,
-                    objective = 'binary:logistic',
-                    use_label_encoder = False,
-                    random_state = 2022)
-model_xgb = xgb.fit(X_train, y_train, eval_metric = 'mlogloss')
-
-# 3) lightgbm
-lgb = LGBMClassifier(max_depth = 8,
-                     n_estimators = 500,
-                     n_jobs = 30,
-                     min_child_weight = 10,
-                     learning_rate = 0.2,
-                     objective = 'binary',
-                     random_state = 2022)
-model_lgb = lgb.fit(X_train, y_train)
-
-
-### 검증 및 예측
-from sklearn.metrics import accuracy_score
-
-pred_rf = model_rf.predict(X_val)
-pred_xgb = model_xgb.predict(X_val)
-pred_lgb = model_lgb.predict(X_val)
-
-acc_rf = accuracy_score(y_val, pred_rf)
-acc_xgb = accuracy_score(y_val, pred_xgb)
-acc_lgb = accuracy_score(y_val, pred_lgb)
-
-y_pred = model_xgb.predict(test)
-
-### 결과제출
-obj = {'id':test_id,
-       'stroke':y_pred}
-result = pd.DataFrame(obj)
-
-result.to_csv('data/21610683.csv', index = False)
+4. 모델 학습 및 예측
+5. 결과제출
